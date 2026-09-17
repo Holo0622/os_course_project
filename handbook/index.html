@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木工坊 BrickForge · 初期工作手册</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css?v=0.2" />
+</head>
+<body>
+  <button class="menu-btn" id="menu" type="button">目录</button>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="mark">
+        <div class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div>
+          <strong>积木工坊</strong>
+          <span>BrickForge 工作手册</span>
+        </div>
+      </div>
+      <p class="ver">v0.2 · 2026-09-17 · 四人分工已定</p>
+      <nav class="nav">
+        <a href="#overview">1. 这份手册是什么</a>
+        <a href="#requirements">2. 课设硬性对照</a>
+        <a href="#vision">3. 产品愿景</a>
+        <a href="#bricks">4. 积木语义</a>
+        <a href="#os-map">5. OS 原理映射</a>
+        <a href="#daemon-plan">6. 守护进程</a>
+        <a href="#calc">7. 产量与收益</a>
+        <a href="#playground">8. 两层积木</a>
+        <a href="#architecture">9. 系统架构</a>
+        <a href="#stack">10. 技术选型</a>
+        <a href="#timeline">11. 八周节奏</a>
+        <a href="#roles">12. 小组分工</a>
+        <a href="#grading">13. 评分对照</a>
+        <a href="#risks">14. 风险与待决</a>
+        <a href="#next">15. 下次讨论</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="hero" id="overview">
+        <div>
+          <div class="kicker">操作系统原理课程设计 · 初期工作手册</div>
+          <h1>积木工坊 BrickForge</h1>
+          <p class="lead">用户像搭积木一样拼出工厂结构；系统把车间、机器、仓库和物流映射成进程、线程、同步与调度，再据此估算产量和收益。</p>
+          <p>本页给小组查阅，不是最终需求文档。目标是先对齐：<b>做什么、为什么能交课设、操作系统算法落在哪里、接下来一周先讨论什么。</b></p>
+        </div>
+        <div class="hero-card">
+          <span class="badge">4 人组</span>
+          <span class="badge">必须有守护进程</span>
+          <span class="badge">答辩 60%</span>
+          <p><b>选题一句话：</b>可视化工厂拼装器 + 用 OS 算法驱动的产能仿真。</p>
+          <p><b>交互隐喻：</b>极简几何积木。车间是大方块，机器是小方块，传送带是长条，仓库是格网。</p>
+          <p><b>计算承诺：</b>布局变了、参数变了、调度策略变了，产量和收益都要跟着变。</p>
+        </div>
+      </header>
+
+      <section id="requirements">
+        <h2>2. 课设硬性对照</h2>
+        <div class="callout">邵文华老师课件要求：做一款较完整的课程软件；基本内容必须覆盖进程/线程调度、同步互斥、消息传递、文件处理、文件锁；系统<b>必须有守护进程</b>；鼓励图形界面与多终端显示。</div>
+        <table>
+          <thead>
+            <tr><th>课设要求</th><th>积木工坊里怎么落地</th><th>状态</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>进程控制与管理</td><td>每个车间是一个工作进程；工厂主控创建、暂停、回收车间进程。</td><td class="must">必做</td></tr>
+            <tr><td>守护进程</td><td>厂务守护进程监控车间心跳，崩溃后拉起，并周期写运行日志。</td><td class="must">必做</td></tr>
+            <tr><td>信号与同步</td><td>急停、换班、缺料用信号；共享机床/库位用互斥与信号量。</td><td class="must">必做</td></tr>
+            <tr><td>IPC：管道 / 消息队列 / 共享内存 / 信号量</td><td>传送带=管道；工单=消息队列；看板数据=共享内存；有限库位=信号量。</td><td class="must">至少三种</td></tr>
+            <tr><td>线程创建、调度、同步</td><td>车间内每台机器一个工作线程，共享该车间的工位与工具。</td><td class="must">必做</td></tr>
+            <tr><td>文件 I/O 与文件锁</td><td>工厂布局、工艺参数、班报写入文件；多端写库存时加文件锁。</td><td class="must">必做</td></tr>
+            <tr><td>图形界面 / 多终端</td><td>积木画布是主界面；守护进程状态可在第二个终端或面板显示。</td><td class="ok">加分项，建议做</td></tr>
+            <tr><td>Gitee commit 质量</td><td>按功能小步提交，提交说明写清「改了哪条 OS 能力」。</td><td class="ok">答辩参考项</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vision">
+        <h2>3. 产品愿景</h2>
+        <div class="grid-3">
+          <article class="card">
+            <h3>拼</h3>
+            <p class="muted">厂区是一张平面：把车间积木拖上去，靠边会吸住，像搭乐高。点进某个车间后，平面换成该车间内部，再拖工位和机械臂。两层结构对应进程套线程。</p>
+          </article>
+          <article class="card">
+            <h3>填</h3>
+            <p class="muted">点选积木后填写节拍、产能、能耗、故障率、优先级、成品单价。数据进仿真，不进空表。</p>
+          </article>
+          <article class="card">
+            <h3>算</h3>
+            <p class="muted">按拓扑瓶颈、调度算法、同步等待、宕机恢复和物流路径，给出班产量、利用率、成本和收益，并可对比不同算法。</p>
+          </article>
+        </div>
+        <div class="callout steel">课设不是做真实 MES。我们做的是「能跑、能讲清楚 OS 原理」的教学仿真：界面像搭积木，内核像一台小操作系统在调度工厂。</div>
+      </section>
+
+      <section id="bricks">
+        <h2>4. 积木语义</h2>
+        <p>图形要克制：矩形、条带、圆点就够。颜色区分角色，不画写实厂房。</p>
+        <div class="brick-row">
+          <div class="brick b-shop">车间</div>
+          <div class="brick b-machine">机器</div>
+          <div class="brick b-store">仓库</div>
+          <div class="brick b-belt">传送带</div>
+          <div class="brick b-check">质检</div>
+          <div class="brick b-dock">发货台</div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>积木</th><th>用户看到的</th><th>系统内部对象</th><th>可填数据（初稿）</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>车间</td><td>大矩形区块，可嵌套机器</td><td>进程 / 进程组</td><td>班次、优先级、最大并发机器数</td></tr>
+            <tr><td>机器</td><td>车间内的小方块</td><td>工作线程</td><td>节拍(秒/件)、能耗、故障率、换模时间</td></tr>
+            <tr><td>仓库</td><td>带格子的矩形</td><td>共享内存 + 内存分配</td><td>库位容量、安全库存、货品体积</td></tr>
+            <tr><td>传送带</td><td>连接两个车间的长条</td><td>管道</td><td>带宽（件/分钟）、缓冲长度</td></tr>
+            <tr><td>质检 / 工单口</td><td>带圆点的站点</td><td>消息队列端口</td><td>抽检率、不合格回退策略</td></tr>
+            <tr><td>发货台</td><td>厂区边缘码头</td><td>磁盘调度式路径选择</td><td>目的地距离、订单批量</td></tr>
+            <tr><td>共享工具</td><td>车间角上的小圆</td><td>互斥锁 / 信号量</td><td>工具数量（信号量初值）</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="os-map">
+        <h2>5. OS 原理映射</h2>
+        <p>课件后半部分给了急诊室、零售库存、网联车、快递中心四个类比。我们把它们收进同一座工厂，答辩时可以说「不是硬凑四个作业，而是一条生产链上的四类调度」。</p>
+        <div class="grid-2">
+          <article class="card">
+            <h3>处理机调度 → 工单调度</h3>
+            <p class="muted">病人=工单，医生=机器，急诊优先级=加急订单。算法至少实现 FCFS、SJF、动态优先级、RR，并允许用户在面板切换。碎片时间对应「机器空出来但不够做下一道长工序」。</p>
+          </article>
+          <article class="card">
+            <h3>内存管理 → 库位分配</h3>
+            <p class="muted">到货像进程申请内存。用首次适应 / 最佳适应把货物放进最接近需求量的货架；放不下就合并或调整分区。剩余空间记入库存碎片率，影响仓储成本。</p>
+          </article>
+          <article class="card">
+            <h3>进程同步 → 产线节拍</h3>
+            <p class="muted">上下游车间要会合：没料不能开工，满仓不能下线。用信号量表示有限库位和有限夹具，用互斥保证同一工装同时只被一台机器占用。同步等待会进入产量公式。</p>
+          </article>
+          <article class="card">
+            <h3>磁盘调度 → 出货路径</h3>
+            <p class="muted">订单目的地像磁道号。默认 SSTF：先送离当前发货台最近的订单，再滚雪球。可对比 FCFS 配送，展示路程差和延迟对收益的影响。</p>
+          </article>
+        </div>
+        <h3>建议的 IPC 分工（不要五种都做成玩具）</h3>
+        <table>
+          <thead>
+            <tr><th>机制</th><th>工厂场景</th><th>实现深度建议</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>管道</td><td>相邻车间的半成品流</td><td>真正用 pipe / 等价通道传批次记录，面板显示队列长度。</td></tr>
+            <tr><td>消息队列</td><td>计划室向车间派工、质检回传结果</td><td>工单结构体入队出队，可查看阻塞。</td></tr>
+            <tr><td>共享内存</td><td>全厂看板：在制、良品、告警</td><td>守护进程与 GUI 读同一块状态。</td></tr>
+            <tr><td>信号量 / 锁</td><td>有限 AGV、有限充电桩、文件库存</td><td>能演示「资源=0 时线程阻塞，释放后继续」。</td></tr>
+            <tr><td>信号</td><td>急停、下班、守护进程拉起</td><td>SIGTERM / 自定义逻辑信号均可，要能在界面看到。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="daemon-plan">
+        <h2>6. 守护进程（验收点）</h2>
+        <div class="callout">实验评分写了「代码要跑通，守护线程有效」。课件示范的是 Linux 标准套路：fork → 父退出 → setsid → umask → chdir → 关闭 0/1/2 并重定向到 /dev/null → 业务循环。</div>
+        <p>积木工坊里，守护进程名叫 <b>厂务精灵 Factory Daemon</b>，职责建议收窄为三件，方便演示和答辩：</p>
+        <ol>
+          <li><b>保活：</b>监听各车间进程心跳；超时或崩溃则按策略重新拉起，并记一次「故障损失工时」。</li>
+          <li><b>值守配置：</b>监视布局文件与参数文件，避免仿真进程写到一半被另一个终端覆盖（配合文件锁）。</li>
+          <li><b>落盘：</b>每隔数秒把时钟、在制数量、告警写入日志文件（课件示例是每 2 秒写系统时间，我们可以写成班报）。</li>
+        </ol>
+        <p class="muted">若主界面跑在 Windows、内核仿真跑在 WSL/Linux，守护进程放 Linux 侧更贴课件。若全栈 Web，也必须有一个独立于浏览器的后台常驻进程，不能只拿前端 <code>setInterval</code> 冒充 Daemon。</p>
+      </section>
+
+      <section id="calc">
+        <h2>7. 产量与收益怎么算</h2>
+        <p>初期先用可解释的公式，再视精力换成更细的事件仿真。答辩要能指着面板说「这个数字从哪条 OS 机制来」。</p>
+        <pre class="formula">瓶颈产能     = min(各车间有效产能)
+车间有效产能 = 机器并行能力 × (1 - 同步等待率) × 调度效率
+同步等待率   = f(信号量争用, 管道阻塞, 库位不足)
+调度效率     = 所选算法在当前工单集上的完成率 / 理想完成率
+故障损失     = 宕机时长；有守护进程则 ≈ 检测间隔 + 拉起时间
+物流延迟     = SSTF 或 FCFS 配送的总路程时间
+
+班产量       = 瓶颈产能 × 班次时长 × 良品率
+班成本       = 机器能耗 + 人工 + 库存占用 + 违约金
+班收益       = 班产量 × 单价 - 班成本</pre>
+        <div class="grid-2">
+          <article class="card">
+            <h3>让算法真正改变数字</h3>
+            <p class="muted">同一套积木布局下，切换 FCFS / SJF / 动态优先级 / RR，产量、平均等待、违约次数必须不同。否则答辩时会被问「算法是不是只写在 PPT 上」。</p>
+          </article>
+          <article class="card">
+            <h3>让拼接真正改变数字</h3>
+            <p class="muted">多放一台机器、打断传送带、把仓库改小，结果都要变。智能计算的「智能」首先来自结构约束，而不是空喊优化。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="playground">
+        <h2>8. 两层积木沙盘</h2>
+        <p>最简演示：从左侧把积木拖到平面上，松手后会对齐网格；车间靠边会吸在一起。点车间上的「进入」，平面变成车间内部，再拖机器。点「返回厂区」上来。不是成品，只用来对齐交互直觉。</p>
+        <div class="toolbar">
+          <button id="back" type="button" hidden>返回厂区</button>
+          <label>调度算法
+            <select id="sched">
+              <option value="fcfs">FCFS</option>
+              <option value="sjf">SJF</option>
+              <option value="priority" selected>动态优先级</option>
+              <option value="rr">RR</option>
+            </select>
+          </label>
+          <label><input id="daemon-on" type="checkbox" checked /> 启用厂务守护进程</label>
+          <label>单价 <input id="price" type="number" value="18" min="1" style="width:72px" /></label>
+          <button id="clear" type="button">清空当前层</button>
+        </div>
+        <p class="crumb" id="crumb">厂区平面 · 车间 = 进程</p>
+        <div class="playground">
+          <div class="palette" id="palette"></div>
+          <div>
+            <div class="stage" id="stage" aria-label="积木平面"></div>
+            <p class="muted" id="m-struct"></p>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span>估算班产量</span><b id="m-yield">0 件/班</b></div>
+            <div class="metric"><span>估算班收益</span><b id="m-rev">0 元</b></div>
+            <p class="muted" id="m-note"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="architecture">
+        <h2>9. 建议系统架构</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>表现层</h3>
+            <p class="muted">积木画布、属性面板、算法切换、产量对比图、守护进程状态灯。</p>
+          </article>
+          <article class="card">
+            <h3>仿真内核</h3>
+            <p class="muted">进程/线程模型、调度器、同步原语、IPC、仓储分配、出货路径。内核不要绑死在某个 UI 库上。</p>
+          </article>
+          <article class="card">
+            <h3>厂务守护进程</h3>
+            <p class="muted">独立进程。监控、拉起、写日志。与内核用套接字、消息队列或共享内存通信。</p>
+          </article>
+          <article class="card">
+            <h3>持久化</h3>
+            <p class="muted">布局 JSON、参数文件、班报、锁文件。演示文件锁时用两个写入者抢同一库存账本。</p>
+          </article>
+        </div>
+        <p>数据流可以记成：<b>画布拓扑 + 参数表 → 内核事件仿真 → 指标 → 面板</b>。守护进程旁路监控进程表，不直接画积木。</p>
+      </section>
+
+      <section id="stack">
+        <h2>10. 技术选型（待组会拍板）</h2>
+        <div class="callout sage">课件示例代码是 POSIX C。内核用 C/C++ 最贴「操作系统原理」；界面用 Web 最贴「积木可视化」。两者用本地 RPC 或 WebSocket 连，是比较稳的课设形态。</div>
+        <table>
+          <thead>
+            <tr><th>方案</th><th>优点</th><th>风险</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A. Linux C 内核 + Web 画布</td><td>Daemon/IPC/文件锁都原汁原味；界面好做拼积木。</td><td>要处理前后端协议，Windows 同学需 WSL。</td></tr>
+            <tr><td>B. 全 Python（multiprocessing + PySide/Web）</td><td>开发快，进程/队列/锁都有。</td><td>答辩时要主动对比 POSIX，避免被说「调用库交差」。</td></tr>
+            <tr><td>C. 纯前端仿真</td><td>积木交互最快。</td><td>守护进程和真实 IPC 很难自圆其说，<b>不推荐作为主方案</b>。</td></tr>
+          </tbody>
+        </table>
+        <p>手册倾向方案 A。若第一周组会认为联调成本过高，可退到 B，但 Daemon 仍须独立进程。</p>
+      </section>
+
+      <section id="timeline">
+        <h2>11. 按课件八周对齐</h2>
+        <table>
+          <thead>
+            <tr><th>周次</th><th>课件任务</th><th>积木工坊本组产出</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>第 1 周</td><td>组队、熟悉 API、构思</td><td>确认名单与仓库；读完本手册；拍板技术栈；列出用例。</td></tr>
+            <tr><td>第 2 周</td><td>需求分析、概要设计</td><td>用例图、积木对象表、OS 映射图、守护进程流程。</td></tr>
+            <tr><td>第 3 周</td><td>小组汇报 PPT</td><td>用 UML / 原型 / 思维导图讲清难点：画布与内核如何同步、Daemon 如何演示。</td></tr>
+            <tr><td>第 4–5 周</td><td>集中编码</td><td>先跑通 Daemon + 一个车间进程 + 一种 IPC；再补画布与调度对比。</td></tr>
+            <tr><td>第 6 周</td><td>可运行验收</td><td>现场拼一个小厂，切换算法看产量变化，杀掉车间进程看守护拉起。</td></tr>
+            <tr><td>第 7–8 周</td><td>个人 PPT 与答辩</td><td>每人准备自己负责模块的时序图、问题与改进、原理应用说明。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="roles">
+        <h2>12. 四人分工（人人都有 AI）</h2>
+        <p>不按「会不会写代码」切，按<b>答辩能独立讲清的 OS 原理</b>切。产量/收益不再单列第五人：数字必须由 B 的调度和 C 的阻塞共同推出来，A 只负责显示。</p>
+        <div class="callout">公共契约（四人都要遵守，禁止各让 AI 另起一套）：布局 JSON、指标 JSON、一人一条分支、第 6 周共用演示脚本。</div>
+        <table>
+          <thead>
+            <tr><th>人</th><th>领地</th><th>做成什么</th><th>答辩主讲</th><th>别人不准动</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A</td>
+              <td>积木画布 + 协议</td>
+              <td>厂区拖车间、点进车间拖机器、属性表。维护两份 JSON 的字段说明。第 3/6 周把演示串起来。</td>
+              <td>进程/线程如何被用户拼出来；数据流。</td>
+              <td>不写调度器、不写 Daemon。</td>
+            </tr>
+            <tr>
+              <td>B</td>
+              <td>进程 / 线程 / 调度</td>
+              <td>车间=进程，机器=线程。FCFS、SJF、动态优先级、RR。同一布局切换算法，产量必须不同。</td>
+              <td>处理机调度（急诊室类比）。</td>
+              <td>不改画布 DOM，不写 fork 守护进程。</td>
+            </tr>
+            <tr>
+              <td>C</td>
+              <td>同步、IPC、仓储</td>
+              <td>管道、消息队列、信号量、共享内存至少落地三种，能演示阻塞。库位用首次/最佳适应。</td>
+              <td>进程同步 + 内存管理（库存货架）。</td>
+              <td>不改四种调度算法本体。</td>
+            </tr>
+            <tr>
+              <td>D</td>
+              <td>守护进程、文件、出货</td>
+              <td>独立 Daemon：心跳、崩溃拉起、写日志。布局/库存文件锁。发货台 SSTF。</td>
+              <td>守护进程创建流程、文件锁、磁盘调度类比。</td>
+              <td>不许用前端 setInterval 冒充 Daemon。</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>文档谁写</h3>
+        <p>没有专职文秘。第 3 周 PPT：A 串场，B/C/D 各出自己模块的一张图。第 7–8 周个人答辩材料各自完成。Gitee 规范由 A 起草一页，四人一起遵守。</p>
+        <h3>第一周每人最低交付（可以是 AI 初稿，但本人能讲）</h3>
+        <table>
+          <thead>
+            <tr><th>人</th><th>交什么</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>布局 JSON 字段草稿 + 手册沙盘同款交互说明（两层平面）。</td></tr>
+            <tr><td>B</td><td>无界面调度小程序：同一组工单，四种算法打印完成时间和平均等待。</td></tr>
+            <tr><td>C</td><td>两个进程用一种 IPC 传一条工单；另写信号量=0 时阻塞的最小例子。</td></tr>
+            <tr><td>D</td><td>按课件流程拉起一个 Daemon，杀掉再拉起，并往文件追加一行日志。</td></tr>
+          </tbody>
+        </table>
+        <h3>有 AI 之后仍须本人完成</h3>
+        <ul>
+          <li>能脱离 AI 讲 3 分钟自己那条原理。</li>
+          <li>故意制造一次故障（杀进程、占满库位、切换算法）再修掉，答辩才有「发现了什么问题」。</li>
+          <li>交叉评审：A 查 B 的数字是否真变；C 查 D 是不是独立进程；B 查 C 能不能看出阻塞；D 查 A 的 JSON 内核读不读得懂。</li>
+        </ul>
+      </section>
+
+      <section id="grading">
+        <h2>13. 评分对照，避免做错力</h2>
+        <table>
+          <thead>
+            <tr><th>分项</th><th>权重</th><th>我们要对准的证据</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>平时</td><td>10%</td><td>出勤、过程材料。</td></tr>
+            <tr><td>课堂实验设计</td><td>15%</td><td>必要性（工厂可视化决策）、概要设计里写清 OS 原理、分工表。</td></tr>
+            <tr><td>实验运行</td><td>15%</td><td>能拼、能算、Daemon 有效、体验顺、别崩溃。组间互评有链接。</td></tr>
+            <tr><td>个人答辩</td><td>60%</td><td>用例图、时序图、运行中发现的问题、原理用得是否充分、选题新意、commit 质量。</td></tr>
+          </tbody>
+        </table>
+        <div class="callout">个人答辩占比最高。每个人都要能讲自己模块对应哪条 OS 原理，不能只会操作界面。</div>
+      </section>
+
+      <section id="risks">
+        <h2>14. 风险与待决问题</h2>
+        <ul>
+          <li>可视化做太重，内核来不及：第 4 周必须先有无界面的仿真可跑。</li>
+          <li>算法写了但不影响产量：对比实验要成为第 6 周演示脚本的核心。</li>
+          <li>Daemon 做成界面里的定时器：验收风险高，必须独立进程。</li>
+          <li>Windows / Linux 环境不统一：尽早定 WSL 或实验楼 308 的环境。</li>
+          <li>题面像企业管理软件：材料里反复强调「OS 驱动的仿真」，不要写成进销存。</li>
+        </ul>
+      </section>
+
+      <section id="next">
+        <h2>15. 下次组会建议议程</h2>
+        <div class="card checks" id="checklist">
+          <p class="muted">勾选会保存在本机浏览器，方便你自己跟踪，不是共享待办。</p>
+          <label><input id="c1" type="checkbox" /> 确认 4 人名单（A 画布 / B 调度 / C IPC仓储 / D Daemon），建 Gitee 仓库</label>
+          <label><input id="c2" type="checkbox" /> 在方案 A / B 中选定技术栈</label>
+          <label><input id="c3" type="checkbox" /> 冻结第一版积木类型（建议就用本页 6 种）</label>
+          <label><input id="c4" type="checkbox" /> 指定守护进程演示脚本（杀进程 → 拉起 → 看日志）</label>
+          <label><input id="c5" type="checkbox" /> 指定至少两种调度算法的对比工单集</label>
+          <label><input id="c6" type="checkbox" /> 第 3 周汇报：谁画用例图、谁做积木原型、谁写 OS 映射</label>
+          <label><input id="c7" type="checkbox" /> 约定接口：画布如何把 JSON 布局交给内核</label>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>积木工坊 BrickForge 初期工作手册 v0.1 · 依据《操作系统原理课程设计》课件整理 · 内容随组会决议修订。</p>
+        <p>打开方式：用浏览器打开本目录的 <code>index.html</code>。第 8 节沙盘需要 JavaScript。</p>
+      </footer>
+    </main>
+  </div>
+  <script src="assets/handbook.js?v=0.2"></script>
+</body>
+</html>
