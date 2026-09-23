@@ -5,3 +5,8 @@ __pycache__/
 .vscode/
 *.o
 *.exe
+data/heartbeats/
+data/*.log
+data/*.pid
+data/*.lock
+data/status.json

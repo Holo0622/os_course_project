@@ -287,55 +287,55 @@
 
       <section id="roles">
         <h2>12. 四人分工（人人都有 AI）</h2>
-        <p>不按「会不会写代码」切，按<b>答辩能独立讲清的 OS 原理</b>切。产量/收益不再单列第五人：数字必须由 B 的调度和 C 的阻塞共同推出来，A 只负责显示。</p>
-        <div class="callout">公共契约（四人都要遵守，禁止各让 AI 另起一套）：布局 JSON、指标 JSON、一人一条分支、第 6 周共用演示脚本。</div>
+        <p>按<b>答辩能独立讲清的 OS 原理</b>切，不要按「谁会写前端」切。甲只负责把乙丙丁算出来的 JSON 画出来；产量必须由乙的等待和丙的阻塞一起推出来。</p>
+        <div class="callout">公共契约：<code>POST /api/simulate</code> 的 <code>lab</code> 字段。乙写 compare/gantt，丙写 sync，丁写 warehouse/shipping，甲只读。一人一条分支，改 kernel 字段先打招呼。</div>
         <table>
           <thead>
-            <tr><th>人</th><th>领地</th><th>做成什么</th><th>答辩主讲</th><th>别人不准动</th></tr>
+            <tr><th>人</th><th>领地</th><th>文件</th><th>做成什么</th><th>答辩主讲</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td>A</td>
-              <td>积木画布 + 协议</td>
-              <td>厂区拖车间、点进车间拖机器、属性表。维护两份 JSON 的字段说明。第 3/6 周把演示串起来。</td>
-              <td>进程/线程如何被用户拼出来；数据流。</td>
-              <td>不写调度器、不写 Daemon。</td>
+              <td>甲</td>
+              <td>积木画布 + 实验台</td>
+              <td><code>app/</code>、<code>app/js/lab.js</code></td>
+              <td>两层平面、传送带、工人、件/分、原料图；底部四格只显示别人的结果。第 6 周串演示。</td>
+              <td>进程/线程如何被拼出来；数据流。</td>
             </tr>
             <tr>
-              <td>B</td>
-              <td>进程 / 线程 / 调度</td>
-              <td>车间=进程，机器=线程。FCFS、SJF、动态优先级、RR。同一布局切换算法，产量必须不同。</td>
+              <td>乙</td>
+              <td>处理机调度</td>
+              <td><code>brickforge/scheduler.py</code>、<code>tests/test_sched.py</code></td>
+              <td>FCFS / SJF / 优先级 / RR。甘特条 + 四算法对照。同一组工单换算法，等待必须不同。</td>
               <td>处理机调度（急诊室类比）。</td>
-              <td>不改画布 DOM，不写 fork 守护进程。</td>
             </tr>
             <tr>
-              <td>C</td>
-              <td>同步、IPC、仓储</td>
-              <td>管道、消息队列、信号量、共享内存至少落地三种，能演示阻塞。库位用首次/最佳适应。</td>
-              <td>进程同步 + 内存管理（库存货架）。</td>
-              <td>不改四种调度算法本体。</td>
+              <td>丙</td>
+              <td>同步、IPC、线程</td>
+              <td><code>sync.py</code>、<code>workers.py</code>、<code>tests/test_sync.py</code></td>
+              <td>车间进程、机器线程、队列、信号量、传送带有界缓冲，能演示空转和阻塞。</td>
+              <td>进程同步 + IPC。</td>
             </tr>
             <tr>
-              <td>D</td>
-              <td>守护进程、文件、出货</td>
-              <td>独立 Daemon：心跳、崩溃拉起、写日志。布局/库存文件锁。发货台 SSTF。</td>
-              <td>守护进程创建流程、文件锁、磁盘调度类比。</td>
-              <td>不许用前端 setInterval 冒充 Daemon。</td>
+              <td>丁</td>
+              <td>守护进程、文件、仓储、出货</td>
+              <td><code>daemon.py</code>、<code>persist.py</code>、<code>warehouse.py</code>、<code>shipping.py</code>、<code>tests/test_store.py</code></td>
+              <td>独立 Daemon 心跳拉起；文件锁；货架首次/最佳适应；SSTF 出货。</td>
+              <td>守护进程、文件锁、磁盘调度。</td>
             </tr>
           </tbody>
         </table>
         <h3>文档谁写</h3>
-        <p>没有专职文秘。第 3 周 PPT：A 串场，B/C/D 各出自己模块的一张图。第 7–8 周个人答辩材料各自完成。Gitee 规范由 A 起草一页，四人一起遵守。</p>
+        <p>没有专职文秘。第 3 周 PPT：甲串场，乙/丙/丁各出自己模块的一张图。第 7–8 周个人答辩材料各自完成。</p>
         <h3>第一周每人最低交付（可以是 AI 初稿，但本人能讲）</h3>
         <table>
           <thead>
             <tr><th>人</th><th>交什么</th></tr>
           </thead>
           <tbody>
-            <tr><td>A</td><td>布局 JSON 字段草稿 + 手册沙盘同款交互说明（两层平面）。</td></tr>
-            <tr><td>B</td><td>无界面调度小程序：同一组工单，四种算法打印完成时间和平均等待。</td></tr>
-            <tr><td>C</td><td>两个进程用一种 IPC 传一条工单；另写信号量=0 时阻塞的最小例子。</td></tr>
-            <tr><td>D</td><td>按课件流程拉起一个 Daemon，杀掉再拉起，并往文件追加一行日志。</td></tr>
+            <tr><td>甲</td><td>能拖车间/机器/连线；实验台能把一次仿真的 lab JSON 画出来。</td></tr>
+            <tr><td>乙</td><td><code>python tests/test_sched.py</code> 打印四种算法等待，数字互不相同。</td></tr>
+            <tr><td>丙</td><td>队列传一条工单；实验台上能看到传送带缓冲水位。</td></tr>
+            <tr><td>丁</td><td>守护进程写日志；货架和 SSTF 路径出现在实验台。</td></tr>
           </tbody>
         </table>
         <h3>有 AI 之后仍须本人完成</h3>

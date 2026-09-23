@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>积木工坊 BrickForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div>
+        <strong>积木工坊</strong>
+        <span>拖积木，拼流水线</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="run" type="button" class="primary">开始生产</button>
+      <button id="save" type="button">保存</button>
+      <button id="reset" type="button">重置</button>
+    </div>
+  </header>
+
+  <main class="work">
+    <aside class="palette-col">
+      <p class="label" id="palette-label">拖到平面</p>
+      <div id="palette"></div>
+      <p class="hint">物料必须沿传送带走：进料 → 车间 → 下一车间或出货。车间里同样是原料 → 机器 → 出货。没接上的工位不产出。双击传送带拆除。</p>
+    </aside>
+
+    <section class="center">
+      <div class="crumbbar">
+        <button id="back" type="button" hidden>返回厂区</button>
+        <p id="crumb">厂区平面</p>
+        <p class="ticker" id="ticker"></p>
+      </div>
+      <div class="fault-bar" id="fault-bar" hidden></div>
+      <p class="alerts" id="alerts" hidden></p>
+      <div class="floor">
+        <aside class="bay in" id="bay-in" aria-label="进料区"></aside>
+        <div class="stage" id="stage" aria-label="积木平面"></div>
+        <aside class="bay out" id="bay-out" aria-label="出货区"></aside>
+        <svg class="wires floor-wires" id="floor-wires" aria-hidden="true"></svg>
+      </div>
+      <div class="monitor-hud" id="monitor-hud" hidden></div>
+      <p class="struct" id="struct"></p>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h3>售价</h3>
+        <label>成品单价 <input id="price" type="number" min="1" value="18" /></label>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><span>良品</span><b id="m-yield">—</b></div>
+        <div class="metric"><span>利润</span><b id="m-rev">—</b></div>
+        <div class="metric"><span>工资</span><b id="m-wage">—</b></div>
+        <div class="metric"><span>效率</span><b id="m-eff">—</b></div>
+      </div>
+      <p class="note" id="m-note">多上人更快，但工资会吃掉利润。</p>
+      <div class="card report-card">
+        <h3>结算</h3>
+        <div id="shift-report"><p class="muted">点「停下」后出结算：良品、次品、卡线、工资。</p></div>
+      </div>
+    </aside>
+  </main>
+  <script src="js/lab.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
