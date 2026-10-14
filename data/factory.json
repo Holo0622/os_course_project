@@ -1,8 +1,8 @@
 {
-  "scheduler": "priority",
+  "scheduler": "mlfq",
   "ship_algo": "sstf",
   "price": 18,
-  "raw": 1323.2120064000371,
+  "raw": 25.3,
   "raw_kind": "steel",
   "daemon": true,
   "warehouse_policy": "best",
@@ -21,10 +21,10 @@
       {
         "id": "in1",
         "name": "冷轧钢板",
-        "qty": 1323.2120064000371,
-        "cap": 3000,
-        "cost": 2,
-        "price": 18
+        "qty": 2.5,
+        "cap": 3000.0,
+        "cost": 2.0,
+        "price": 18.0
       }
     ]
   },
@@ -33,10 +33,10 @@
       {
         "id": "out1",
         "name": "积木成品",
-        "qty": 1425.0243785600146,
-        "cap": 3000,
-        "cost": 2,
-        "price": 18
+        "qty": 2473.2,
+        "cap": 3000.0,
+        "cost": 2.0,
+        "price": 18.0
       }
     ]
   },
@@ -169,7 +169,7 @@
           "priority": 2,
           "workers": 1,
           "ppm": 15,
-          "broken": false
+          "broken": true
         }
       ],
       "wires": [
@@ -182,7 +182,16 @@
           "to": "__outlet__"
         }
       ]
+    },
+    {
+      "id": "s101-mudp219i",
+      "type": "press",
+      "name": "加工车间",
+      "x": 120,
+      "y": 340,
+      "machines": [],
+      "wires": []
     }
   ],
-  "shift_no": 5
+  "shift_no": 9
 }

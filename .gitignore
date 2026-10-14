@@ -10,3 +10,4 @@ data/*.log
 data/*.pid
 data/*.lock
 data/status.json
+data/procs.json
